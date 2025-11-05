@@ -1,0 +1,16 @@
+base model = AdaIN
+
+pytorch_to_onnx.py 실행법
+
+1. https://github.com/naoto0804/pytorch-AdaIN.git 에서 git 다운
+2. 압축해제한 git 폴더에 models 폴더 생성
+3. https://github.com/naoto0804/pytorch-AdaIN/releases/tag/v0.0.0 에서 decoder.pth / vgg_normalized.pth 를 다운받아 models 폴더에 넣기
+4. 변경사항에 있는 파일들을 전부 git 폴더에 넣어 덮어쓰기
+5. 명령 프롬프트에 pip install -r requirements.txt 실행
+6. 명령 프롬프트에 pytorch_to_onnx.py 실행 -> onnx 폴더 생성 후 그 안에 onnx 파일 저장됨
+
+실행 코드 ()
+python pytorch_to_onnx.py --content_size 512 --style_size 512 --alpha 1.0 --vgg_path models/vgg_normalised.pth --decoder_path models/decoder.pth --output_path onnx/AdaIN.onnx
+
+content_size, style_size: 입력 이미지들 크기
+output_path: onnx 파일 저장 위치
