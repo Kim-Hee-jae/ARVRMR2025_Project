@@ -1,0 +1,1 @@
+Unity Play 버튼 누른 후 마우스로 멀리 있는 Style 이미지 3개 중 1개를 좌클릭하면 해당 style로 변환된 content 이미지가 우측 하단에 시각화됨
