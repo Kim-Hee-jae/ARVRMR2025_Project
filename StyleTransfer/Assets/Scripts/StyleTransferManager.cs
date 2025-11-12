@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Unity.Barracuda;
 using UnityEngine;
 using UnityEngine.UI;
-using static defaultStyleTransferManager;
 
 public class StyleTransferManager : MonoBehaviour
 {
@@ -29,7 +28,7 @@ public class StyleTransferManager : MonoBehaviour
         _runtimeModel = ModelLoader.Load(AdaINModel);
         content = GetTexture2D(contentGO);
 
-        execute();
+        //execute();
     }
 
     void execute()
@@ -42,6 +41,7 @@ public class StyleTransferManager : MonoBehaviour
         _worker = WorkerFactory.CreateWorker(WorkerFactory.Type.ComputePrecompiled, _runtimeModel);
         Inputs.Clear();
 
+        content = GetTexture2D(contentGO);
         Texture2D style = GetTexture2D(styleGO);
         style = ResizeTexture(style);
 
@@ -68,7 +68,7 @@ public class StyleTransferManager : MonoBehaviour
             if (Physics.Raycast(ray, out RaycastHit hit))
             {
                 GameObject clickedGO = hit.collider.gameObject;
-                if (styleGO != null && clickedGO.GetInstanceID() != styleGO.GetInstanceID())
+                if (styleGO != null) // clickedGO.GetInstanceID() != styleGO.GetInstanceID()
                 {
                     styleGO = clickedGO;
                     Debug.Log($"Style texture changed to: {styleGO.name}");
