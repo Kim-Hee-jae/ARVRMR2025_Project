@@ -30,6 +30,7 @@ public class DemoButton : MonoBehaviour
         if (rend != null && rend.material != null && rend.material.mainTexture is Texture)
         {
             source = rend.material.mainTexture as Texture;
+            
         }
 
         // 3. 클라이언트 전송 + 완료 시 버튼 다시 활성화

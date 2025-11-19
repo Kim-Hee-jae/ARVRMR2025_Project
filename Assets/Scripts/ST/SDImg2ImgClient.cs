@@ -66,7 +66,10 @@ public class SDImg2ImgClient : MonoBehaviour
             }
 
             if (targetRenderer != null)
+            {
                 targetRenderer.material.mainTexture = outTex;
+            }
+              
 
             Debug.Log("[infer] Success");
         }

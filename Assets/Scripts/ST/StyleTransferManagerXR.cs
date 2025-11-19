@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using Unity.Barracuda;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -63,7 +64,10 @@ public class StyleTransferManagerXR : MonoBehaviour
         Tensor t_output = _worker.PeekOutput("output");
         t_output.ToRenderTexture(output);
         if (outputRenderer != null)
+        {
             outputRenderer.material.mainTexture = output;
+
+        }
 
         t_content.Dispose();
         t_style.Dispose();
@@ -77,7 +81,7 @@ public class StyleTransferManagerXR : MonoBehaviour
             if (rayInteractor.TryGetCurrent3DRaycastHit(out RaycastHit hit))
             {
                 GameObject clickedGO = hit.collider.gameObject;
-                if (styleGO != null) // clickedGO.GetInstanceID() != styleGO.GetInstanceID()
+                if (styleGO != null && clickedGO.layer.Equals(LayerMask.NameToLayer("StyleImage"))) // clickedGO.GetInstanceID() != styleGO.GetInstanceID()
                 {
                     styleGO = clickedGO;
                     Debug.Log($"Style texture changed to: {styleGO.name}");

@@ -1257,6 +1257,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "Primary 2D axis",
+                    "type": "Value",
+                    "id": "431070f7-fd3d-4003-b2c3-ed3d8c81f9af",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
                 }
             ],
             "bindings": [
@@ -1510,6 +1519,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "B Button",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "88e55093-fd07-43d9-91ec-0a0810df83e5",
+                    "path": "<XRController>{RightHand}/primary2DAxis",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Primary 2D axis",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

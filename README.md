@@ -1,3 +1,3 @@
 # ARVRMR2025_Project
 팀프로젝트~
-https://blog.naver.com/ittim_founder/221422143549 <- 좋은 그림들
+https://blog.naver.com/ittim_founder/221422143549
