@@ -2259,10 +2259,8 @@ MonoBehaviour:
       type: 3}
   AdaINModel: {fileID: 5022602860645237092, guid: cd77d0ae4a3e83542a7737f59cdca0b4,
     type: 3}
-  contentGO: {fileID: 1699744209}
+  textureManager: {fileID: 1699744215}
   styleGO: {fileID: 456119901}
-  outputRenderer: {fileID: 1699744211}
-  output: {fileID: 8400000, guid: 76cca9fd9ef20bd42a14aa3f4b1554a4, type: 2}
 --- !u!1 &452442172
 GameObject:
   m_ObjectHideFlags: 0
@@ -9027,6 +9025,7 @@ GameObject:
   - component: {fileID: 1699744211}
   - component: {fileID: 1699744210}
   - component: {fileID: 1699744214}
+  - component: {fileID: 1699744215}
   m_Layer: 0
   m_Name: sketch
   m_TagString: Untagged
@@ -9143,6 +9142,19 @@ MonoBehaviour:
     type: 3}
   joystickThreshold: 0.7
   brushSizeChangeSpeed: 10
+--- !u!114 &1699744215
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1699744209}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1222cb2a05b8a64088e46030d664f45, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetRenderer: {fileID: 1699744211}
 --- !u!1 &1717573399
 GameObject:
   m_ObjectHideFlags: 0
@@ -10513,6 +10525,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 237f5eaeebbbd9b449fb2af39638fd6b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  textureManager: {fileID: 1699744215}
   inferUrl: http://127.0.0.1:5000/infer
   timeoutSec: 180
   staticPrompt: best quailty, hyper detail, realistic, colorful
@@ -10523,7 +10536,6 @@ MonoBehaviour:
   seed: -1
   width: 512
   height: 512
-  targetRenderer: {fileID: 1699744211}
 --- !u!114 &2002437108
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10537,7 +10549,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   client: {fileID: 2002437107}
-  sourceGO: {fileID: 1699744209}
   button: {fileID: 1259668219}
   loadingIcon: {fileID: 0}
 --- !u!1 &2053044032

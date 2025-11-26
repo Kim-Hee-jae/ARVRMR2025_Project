@@ -1,7 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
-using Unity.Barracuda;
+using Unity.Sentis;
+using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -15,29 +16,42 @@ public class StyleTransferManagerXR : MonoBehaviour
     public InputActionProperty triggerButton;
 
     [Header("Model")]
-    public NNModel AdaINModel;
-    
+    public ModelAsset AdaINModel;
+
     [Header("Inputs")]
-    public GameObject contentGO;
+    public DrawingTextureManager textureManager;
     public GameObject styleGO;
 
-    [Header("Output")]
-    public Renderer outputRenderer;
-    public RenderTexture output;
+    private Texture _content;
+    private Texture _style;
+    private RenderTexture _output;
 
-    private Texture2D content;
     private Model _runtimeModel;
-    private IWorker _worker;
+    private Worker _worker;
 
     private Dictionary<string, Tensor> Inputs = new Dictionary<string, Tensor>();
+
+    private TextureTransform _transform;
+    Tensor<float> _contentTensor;
+    Tensor<float> _styleTensor;
+    Tensor<float> _outputTensor;
 
 
     void Set()
     {
         _runtimeModel = ModelLoader.Load(AdaINModel);
-        content = GetTexture2D(contentGO);
+        _content = textureManager.GetTexture(1);
+        _transform = new TextureTransform().SetDimensions(width: 512, height: 512);
 
+        SetTensor();
         //execute();
+    }
+
+    void SetTensor()
+    {
+        var shape = new TensorShape(1, 3, 512, 512);
+        _contentTensor = new Tensor<float>(shape);
+        _styleTensor = new Tensor<float>(shape);
     }
 
     void execute()
@@ -47,31 +61,34 @@ public class StyleTransferManagerXR : MonoBehaviour
             _worker.Dispose();
         }
 
-        _worker = WorkerFactory.CreateWorker(WorkerFactory.Type.ComputePrecompiled, _runtimeModel);
+        _worker = new Worker(_runtimeModel, BackendType.GPUCompute);
         Inputs.Clear();
+        SetTensor();
 
-        content = GetTexture2D(contentGO);
-        Texture2D style = GetTexture2D(styleGO);
-        style = ResizeTexture(style);
+        _content = textureManager.GetTexture(1);
+        _style = GetTexture2D(styleGO);
+        // style = ResizeTexture(style);
+        print(_content.IsUnityNull());
+        print(_contentTensor.IsUnityNull());
+        print(_transform.IsUnityNull());
+        TextureConverter.ToTensor(_content, _contentTensor, _transform);
+        TextureConverter.ToTensor(_style, _styleTensor, _transform);
+        _worker.SetInput("content", _contentTensor);
+        _worker.SetInput("style", _styleTensor);
 
-        Tensor t_content = new Tensor(content, 3);
-        Tensor t_style = new Tensor(style, 3);
-        Inputs.Add("content", t_content);
-        Inputs.Add("style", t_style);
+        _worker.Schedule();
 
-        _worker.Execute(Inputs);
+        _output = new RenderTexture(512, 512, 0, RenderTextureFormat.ARGB32);
+        _output.Create();
 
-        Tensor t_output = _worker.PeekOutput("output");
-        t_output.ToRenderTexture(output);
-        if (outputRenderer != null)
-        {
-            outputRenderer.material.mainTexture = output;
+        _outputTensor = _worker.PeekOutput("output") as Tensor<float>;
+        TextureConverter.RenderToTexture(_outputTensor, _output);
+        textureManager.SetTexture(_output, 2, true);
+        textureManager.targetRenderer.material.mainTexture = _output;
 
-        }
-
-        t_content.Dispose();
-        t_style.Dispose();
-        t_output.Dispose();
+        _contentTensor.Dispose();
+        _styleTensor.Dispose();
+        _outputTensor.Dispose();
     }
 
     void StyleChanged()
@@ -83,10 +100,13 @@ public class StyleTransferManagerXR : MonoBehaviour
                 GameObject clickedGO = hit.collider.gameObject;
                 if (styleGO != null && clickedGO.layer.Equals(LayerMask.NameToLayer("StyleImage"))) // clickedGO.GetInstanceID() != styleGO.GetInstanceID()
                 {
-                    styleGO = clickedGO;
-                    Debug.Log($"Style texture changed to: {styleGO.name}");
-                    execute();
-                    Debug.Log("Output image updated");
+                    if (styleGO.GetInstanceID() != clickedGO.GetInstanceID())
+                    {
+                        styleGO = clickedGO;
+                        Debug.Log($"Style texture changed to: {styleGO.name}");
+                        execute();
+                        Debug.Log("Output image updated");
+                    }
                 }
             }
         }
@@ -106,7 +126,7 @@ public class StyleTransferManagerXR : MonoBehaviour
         return null;
     }
 
-    private Texture2D ResizeTexture(Texture2D source, int width=512, int height=512)
+    private Texture2D ResizeTexture(Texture2D source, int width = 512, int height = 512)
     {
         // RenderTexture를 임시로 생성
         RenderTexture rt = RenderTexture.GetTemporary(width, height);
