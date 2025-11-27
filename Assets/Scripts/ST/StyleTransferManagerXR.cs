@@ -20,7 +20,7 @@ public class StyleTransferManagerXR : MonoBehaviour
 
     [Header("Inputs")]
     public DrawingTextureManager textureManager;
-    public GameObject styleGO;
+    private GameObject styleGO;
 
     private Texture _content;
     private Texture _style;
@@ -40,7 +40,7 @@ public class StyleTransferManagerXR : MonoBehaviour
     void Set()
     {
         _runtimeModel = ModelLoader.Load(AdaINModel);
-        _content = textureManager.GetTexture(1);
+        _content = textureManager.GetContentSel();
         _transform = new TextureTransform().SetDimensions(width: 512, height: 512);
 
         SetTensor();
@@ -65,12 +65,12 @@ public class StyleTransferManagerXR : MonoBehaviour
         Inputs.Clear();
         SetTensor();
 
-        _content = textureManager.GetTexture(1);
+        _content = textureManager.GetContentSel();
         _style = GetTexture2D(styleGO);
         // style = ResizeTexture(style);
-        print(_content.IsUnityNull());
-        print(_contentTensor.IsUnityNull());
-        print(_transform.IsUnityNull());
+        //print(_content.IsUnityNull());
+        //print(_contentTensor.IsUnityNull());
+        //print(_transform.IsUnityNull());
         TextureConverter.ToTensor(_content, _contentTensor, _transform);
         TextureConverter.ToTensor(_style, _styleTensor, _transform);
         _worker.SetInput("content", _contentTensor);
@@ -83,8 +83,7 @@ public class StyleTransferManagerXR : MonoBehaviour
 
         _outputTensor = _worker.PeekOutput("output") as Tensor<float>;
         TextureConverter.RenderToTexture(_outputTensor, _output);
-        textureManager.SetTexture(_output, 2, true);
-        textureManager.targetRenderer.material.mainTexture = _output;
+        textureManager.SetContentST(_output);
 
         _contentTensor.Dispose();
         _styleTensor.Dispose();
@@ -98,9 +97,9 @@ public class StyleTransferManagerXR : MonoBehaviour
             if (rayInteractor.TryGetCurrent3DRaycastHit(out RaycastHit hit))
             {
                 GameObject clickedGO = hit.collider.gameObject;
-                if (styleGO != null && clickedGO.layer.Equals(LayerMask.NameToLayer("StyleImage"))) // clickedGO.GetInstanceID() != styleGO.GetInstanceID()
+                if (clickedGO.layer.Equals(LayerMask.NameToLayer("StyleImage"))) // clickedGO.GetInstanceID() != styleGO.GetInstanceID()
                 {
-                    if (styleGO.GetInstanceID() != clickedGO.GetInstanceID())
+                    if (styleGO == null || styleGO.GetInstanceID() != clickedGO.GetInstanceID())
                     {
                         styleGO = clickedGO;
                         Debug.Log($"Style texture changed to: {styleGO.name}");

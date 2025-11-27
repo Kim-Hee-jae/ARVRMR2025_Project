@@ -66,9 +66,10 @@ public class SDImg2ImgClient : MonoBehaviour
                 yield break;
             }
 
-            textureManager.SetTexture(outTex, 1, true);
+            textureManager.SetContentSD(outTex);
 
             Debug.Log("[infer] Success");
+            req.Dispose();
         }
     }
 
@@ -119,10 +120,11 @@ public class SDImg2ImgClient : MonoBehaviour
                 byte[] outBytes = req.downloadHandler.data;
                 Texture2D outTex = new Texture2D(2, 2, TextureFormat.RGBA32, false);
                 if (outTex.LoadImage(outBytes))
-                    textureManager.SetTexture(outTex, 1, true);
+                    textureManager.SetContentSD(outTex);
 
                 Debug.Log("[infer] Success");
             }
+            req.Dispose();
         }
 
         // 요청이 끝난 후 콜백 호출

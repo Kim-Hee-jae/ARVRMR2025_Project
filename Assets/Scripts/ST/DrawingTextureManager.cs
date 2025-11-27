@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -8,168 +9,136 @@ public class DrawingTextureManager : MonoBehaviour
     [Header("Target Renderer (optional)")]
     public Renderer targetRenderer;
 
-    // 텍스처 히스토리 (런타임 중간 결과들)
-    private Texture _content; // 0
-    private Texture _sdOutput; // 1
-    private Texture _stOutput; // 2
+    // 텍스처
+    private Texture _contentOri;
+    private Texture _contentSD;
+    private Texture _contentSel;
 
+    private Texture _contentST;
+    private Texture _contentSTp;
 
-    private readonly List<Texture> _history = new List<Texture>();
-    private int _currentIndex = -1;
-    private int _contentIndex = -1;
+    public Texture _contentMat;
+
+    private bool _hasStyle;
+    public bool HasStyle => _hasStyle;
+    private bool _contentChanged;
+    private bool _styleChanged;
+    
 
     private void Awake()
     {
-        if (targetRenderer == null)
-            targetRenderer = GetComponent<Renderer>();
+        _contentOri = null;
+        _contentSD = null;
+        _contentSel = null;
+        _contentST = null;
+        _contentSTp = null;
+        _contentMat = null;
 
-        // GetCurrentTexture()가 요청될 때 최초 저장
+        _hasStyle = false;
+        _styleChanged = false;
+        _contentChanged = false;
     }
 
-
-    public void SetTexture(Texture texture, int mode, bool apply=false)
+    public void SetContentOri(Texture content)
     {
-        if (mode == 0)
-        {
-            _content = texture;
-            _sdOutput = texture;
-        }
-        else if (mode == 1)
-            _sdOutput = texture;
-        else if (mode == 2)
-            _stOutput = texture;
+        _contentOri = content;
+        _contentSel = _contentOri;
 
-        if (apply)
-        {
-            targetRenderer.material.mainTexture = texture;
-            print("Texture Changed");
-        }
+        SetMaterialContent(_contentSel);
     }
 
-    public Texture GetTexture(int mode=-1)
+    public void SetContentSD(Texture content)
     {
-        if (mode == 0)
-        {
-            SetTexture(targetRenderer.material.mainTexture, 0);
-            return _content;
-        }
-        else if (mode == 1)
-            return _sdOutput;
-        else if (mode == 2)
-            return _stOutput;
-        else
-            return targetRenderer.material.mainTexture;
+        _contentSD = content;
+        _contentSel = _contentSD;
+
+        SetMaterialContent(_contentSel);
     }
 
-    /// <summary>
-    /// 현재 텍스처를 반환.
-    /// - 최초 호출 시, renderer.material.mainTexture를 history[0]으로 스냅샷하고 반환.
-    /// - 이후 호출 시, history[currentIndex] 반환.
-    /// </summary>
-    public Texture GetCurrentTexture(bool isStyleTransfer=false)
+    public void SetContentST(Texture content)
     {
-        EnsureInitialSnapshot();
+        if (_hasStyle)
+            _styleChanged = true;
+        _hasStyle = true;
 
-        if (_currentIndex < 0 || _currentIndex >= _history.Count)
-        {
-            print("Unexpected Call");
-            return null;
-        }
-        print(targetRenderer.material.mainTexture != _history[_currentIndex]);
+        _contentSTp = _contentST;
+        _contentST = content;
+
+        SetMaterialStyle(_contentST);
+    }
+
+    public void SetMaterialContent_(Texture output)
+    {
+        SetMaterialContent(output);
+    }
+
+    public void SetForErase()
+    {
+        
+    }
+
+    public void SetForNewContent()
+    {
+        SetMaterialStyle(null);
+        SetMaterialMask(null);
+
+        _hasStyle = false;
+        _styleChanged = false;
+        _contentChanged = true;
+    }
+
+    public void SetOutput(Texture output)
+    {
+        _contentMat = output;
+    }
+
+    public Texture GetContentSel()
+    {
+        return _contentSel;
+    }
+
+    public Texture GetContentST()
+    {
+        return _contentST;
+    }
+
+    public Texture GetContentSTp()
+    {
+        return _contentSTp;
+    }
+    public Texture GetMaterialContent()
+    {
         return targetRenderer.material.mainTexture;
-        return _history[_currentIndex];
-        if (isStyleTransfer)
-        {
-            print("1");
-            if(_contentIndex == -1)
-            {
-                _contentIndex = _history.Count - 1; ;
-            }
-            return _history[_contentIndex];
-        }
-        else
-            return _history[_currentIndex];
+    }
+    // Set Material Texture
+    private void SetMaterialContent(Texture content)
+    {
+        targetRenderer.material.mainTexture = content;
     }
 
-    // 새 텍스처를 적용 + 히스토리에 추가.
-    // - Undo 이후 새로운 브랜치가 생기면 그 뒤 히스토리는 제거.
-    public void ApplyNewTexture(Texture tex)
+    private void SetMaterialStyle(Texture style)
     {
-        if (tex == null)
-        {
-            Debug.LogWarning("ApplyNewTexture called with null texture.");
-            return;
-        }
-
-        // 아직 한번도 history를 쓰지 않았다면,
-        // 현재 material.mainTexture를 초기 상태로 캡처
-        EnsureInitialSnapshot();
-
-        // Undo 이후 새로 그리는 경우: 현재 인덱스 뒤의 히스토리는 버림
-        if (_currentIndex < _history.Count - 1)
-        {
-            _history.RemoveRange(_currentIndex + 1, _history.Count - _currentIndex - 1);
-        }
-
-        // 새 텍스처를 history에 추가하고
-        _history.Add(tex);
-        _currentIndex = _history.Count - 1;
-
-        // 실제 Renderer에 적용
-        ApplyTextureToRenderer(tex);
+        targetRenderer.material.SetTexture("_StyleTex", style);
     }
 
-    // 현재 renderer 상태를 처음으로 history에 캡처해야 할 때만 한 번 수행.
-    private void EnsureInitialSnapshot()
+
+    public void SetMaterialMask(Texture mask)
     {
-        if (_history.Count > 0)
-            return; // 이미 스냅샷 있음
-
-        if (targetRenderer == null || targetRenderer.material == null)
-            return;
-
-        var tex = targetRenderer.material.mainTexture;
-        if (tex == null)
-            return; // 초기 텍스처가 없으면 히스토리 시작 안 함
-
-        _history.Add(tex);
-        _currentIndex = 0;
+        targetRenderer.material.SetTexture("_MaskTex", mask);
     }
 
-    private void ApplyTextureToRenderer(Texture tex)
+
+    public bool StyleChanged()
     {
-        if (targetRenderer != null && targetRenderer.material != null)
-        {
-            targetRenderer.material.mainTexture = tex;
-        }
+        bool value = _styleChanged;
+        _styleChanged = false;
+        return value;
     }
 
-    // 필요 시 사용
-
-    public bool CanUndo => _currentIndex > 0;
-    public bool CanRedo => _currentIndex >= 0 && _currentIndex < _history.Count - 1;
-
-    public void Undo()
+    public bool ContentChanged()
     {
-        if (!CanUndo)
-        {
-            Debug.Log("No more history to undo.");
-            return;
-        }
-
-        _currentIndex--;
-        ApplyTextureToRenderer(_history[_currentIndex]);
-    }
-
-    public void Redo()
-    {
-        if (!CanRedo)
-        {
-            Debug.Log("No more history to redo.");
-            return;
-        }
-
-        _currentIndex++;
-        ApplyTextureToRenderer(_history[_currentIndex]);
+        bool value = _contentChanged;
+        _contentChanged = false;
+        return value;
     }
 }
