@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
-using static UnityEngine.Rendering.DebugUI.MessageBox;
 
 [RequireComponent(typeof(Renderer))]
 public class DrawingTextureManager : MonoBehaviour
@@ -23,7 +22,6 @@ public class DrawingTextureManager : MonoBehaviour
     private bool _hasStyle;
     public bool HasStyle => _hasStyle;
     private bool _contentChanged;
-    private bool _contentChanged2;
     private bool _styleChanged;
     
 
@@ -39,7 +37,6 @@ public class DrawingTextureManager : MonoBehaviour
         _hasStyle = false;
         _styleChanged = false;
         _contentChanged = false;
-        _contentChanged2 = false;
     }
 
     public void SetContentOri(Texture content)
@@ -60,21 +57,19 @@ public class DrawingTextureManager : MonoBehaviour
 
     public void SetContentST(Texture content)
     {
+        if (_hasStyle)
+            _styleChanged = true;
+        _hasStyle = true;
+
         _contentSTp = _contentST;
         _contentST = content;
 
-        if (_hasStyle)
-            _styleChanged = true;
-        else
-            SetMaterialStyle(_contentST);
-
-        _hasStyle = true;
+        SetMaterialStyle(_contentST);
     }
 
     public void SetMaterialContent_(Texture output)
     {
         SetMaterialContent(output);
-        SetMaterialStyle(_contentST);
     }
 
     public void SetForErase()
@@ -84,20 +79,17 @@ public class DrawingTextureManager : MonoBehaviour
 
     public void SetForNewContent()
     {
-        SetMaterialContent(_contentSel);
         SetMaterialStyle(null);
         SetMaterialMask(null);
 
         _hasStyle = false;
         _styleChanged = false;
         _contentChanged = true;
-        _contentChanged2 = true;
     }
 
     public void SetOutput(Texture output)
     {
         _contentMat = output;
-        SetMaterialContent(_contentMat);
     }
 
     public Texture GetContentSel()
@@ -116,15 +108,9 @@ public class DrawingTextureManager : MonoBehaviour
     }
     public Texture GetMaterialContent()
     {
-        // return targetRenderer.material.GetTexture("_MainTex");
         return targetRenderer.material.mainTexture;
     }
-    public Texture GetOutput()
-    {
-        return _contentMat;
-    }
-    // Set
-    // Material Texture
+    // Set Material Texture
     private void SetMaterialContent(Texture content)
     {
         targetRenderer.material.mainTexture = content;
@@ -153,13 +139,6 @@ public class DrawingTextureManager : MonoBehaviour
     {
         bool value = _contentChanged;
         _contentChanged = false;
-        return value;
-    }
-
-    public bool ContentChanged2()
-    {
-        bool value = _contentChanged2;
-        _contentChanged2 = false;
         return value;
     }
 }

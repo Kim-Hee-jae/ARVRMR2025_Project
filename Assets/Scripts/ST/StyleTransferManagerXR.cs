@@ -152,8 +152,6 @@ public class StyleTransferManagerXR : MonoBehaviour
 
     private void Update()
     {
-        if (textureManager.ContentChanged2())
-            styleGO = null;
         StyleChanged();
     }
 
