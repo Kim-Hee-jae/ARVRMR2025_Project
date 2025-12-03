@@ -27,11 +27,21 @@ public class MaskDrawingManager : MonoBehaviour
     public Color brushColor = Color.white;  // 중심 밝기 1 기준이라 사실 R 채널만 씀
 
     private Texture2D _maskTex;
+<<<<<<< Updated upstream
+=======
+
+    private static Material _blendMat;
+    private static bool _blendMatInitialized = false;
+>>>>>>> Stashed changes
 
     void Start()
     {
         // 마스크 텍스처 생성 (처음엔 전부 검정 -> content만 보임)
         _maskTex = new Texture2D(maskResolution, maskResolution, TextureFormat.R8, false);
+<<<<<<< Updated upstream
+=======
+        _maskTex.filterMode = FilterMode.Bilinear;
+>>>>>>> Stashed changes
         ClearMask(Color.black);
         _maskTex.Apply();
 
@@ -70,6 +80,11 @@ public class MaskDrawingManager : MonoBehaviour
             ClearMask(Color.black);
             _maskTex.Apply();
             textureManager.SetMaterialMask(_maskTex);
+<<<<<<< Updated upstream
+=======
+
+            textureManager.SetMaterialContent_(newContent);           
+>>>>>>> Stashed changes
         }
 
         if (isDrawing)
@@ -92,6 +107,13 @@ public class MaskDrawingManager : MonoBehaviour
                 _maskTex
                 );
         textureManager.SetOutput(newContent);
+<<<<<<< Updated upstream
+=======
+
+        ClearMask(Color.black);
+        _maskTex.Apply();
+        textureManager.SetMaterialMask(_maskTex);
+>>>>>>> Stashed changes
     }
 
     void ShootRayAndPaint()
@@ -168,7 +190,89 @@ public class MaskDrawingManager : MonoBehaviour
         _maskTex.SetPixels(cols);
     }
 
-    public static Texture2D BlendContentStyleWithMask(Texture2D content, Texture2D style, Texture2D mask)
+    public Texture2D BlendContentStyleWithMask(Texture2D content, Texture2D style, Texture2D mask)
+    {
+        if (content == null)
+        {
+            Debug.LogError("BlendContentStyleWithMask: content 텍스처가 null입니다.");
+            return null;
+        }
+        if (style == null)
+        {
+            Debug.LogError("BlendContentStyleWithMask: style 텍스처가 null입니다.");
+            return null;
+        }
+        if (mask == null)
+        {
+            Debug.LogError("BlendContentStyleWithMask: mask 텍스처가 null입니다.");
+            return null;
+        }
+
+        int w = content.width;
+        int h = content.height;
+
+        if (style.width != w || style.height != h ||
+            mask.width != w || mask.height != h)
+        {
+            Debug.LogError("BlendContentStyleWithMask: 텍스처 해상도가 서로 다릅니다.");
+            return null;
+        }
+
+        EnsureBlendMaterial(); // 씬에 있는 DrawingTextureManager 머티리얼 복제
+
+        if (_blendMat == null)
+        {
+            Debug.LogError("BlendContentStyleWithMask: _blendMat 초기화 실패 (Shader를 찾지 못함).");
+            return null;
+        }
+
+        // 머티리얼에 텍스처 세팅 (현재 MaskBlend.shader에서 쓰는 이름 그대로)
+        _blendMat.SetTexture("_MainTex", content);   // content
+        _blendMat.SetTexture("_StyleTex", style);    // style
+        _blendMat.SetTexture("_MaskTex", mask);      // mask
+
+        // GPU에서 Blit → RT → ReadPixels로 Texture2D 생성
+        RenderTexture rt = RenderTexture.GetTemporary(w, h, 0, RenderTextureFormat.ARGB32);
+        var prevActive = RenderTexture.active;
+
+        Graphics.Blit(content, rt, _blendMat);
+
+        Texture2D result = new Texture2D(w, h, TextureFormat.RGBA32, false);
+        RenderTexture.active = rt;
+        result.ReadPixels(new Rect(0, 0, w, h), 0, 0);
+        result.Apply();
+
+        RenderTexture.active = prevActive;
+        RenderTexture.ReleaseTemporary(rt);
+
+        return result;
+    }
+
+    // 씬에 있는 DrawingTextureManager의 머티리얼을 한 번만 복제해서 사용
+    private void EnsureBlendMaterial()
+    {
+        if (_blendMatInitialized && _blendMat != null)
+            return;
+
+        _blendMatInitialized = true;
+
+        if (textureManager != null && textureManager.targetRenderer != null && textureManager.targetRenderer.material != null)
+        {
+            // 현재 사용 중인 머티리얼(=MaskBlend shader 포함)을 복제
+            _blendMat = new Material(textureManager.targetRenderer.material);
+        }
+        else
+        {
+            // 혹시 못 찾았을 때의 fallback (Shader 이름은 프로젝트에 맞게 수정 가능)
+            Shader s = Shader.Find("MaskBlend");
+            if (s == null)
+                s = Shader.Find("Unlit/MaskBlend");
+            if (s != null)
+                _blendMat = new Material(s);
+        }
+    }
+
+    public static Texture2D _BlendContentStyleWithMask(Texture2D content, Texture2D style, Texture2D mask)
     {
         if (content == null)
         {

@@ -16,6 +16,7 @@ public class StyleTransferManagerXR : MonoBehaviour
     public NNModel AdaINModel;
     
     [Header("Inputs")]
+<<<<<<<< Updated upstream:StyleTransfer/Assets/Scripts/StyleTransferManagerXR.cs
     public GameObject contentGO;
     public GameObject styleGO;
 
@@ -64,6 +65,25 @@ public class StyleTransferManagerXR : MonoBehaviour
         t_content.Dispose();
         t_style.Dispose();
         t_output.Dispose();
+========
+    public DrawingTextureManager textureManager;
+    public SDImg2ImgClient styleReference;
+
+
+    void execute(GameObject clickedGO)
+    {
+        int idx;
+        if (clickedGO.tag == "style1") 
+            idx = 0;
+        else if (clickedGO.tag == "style2")
+            idx = 1;
+        else if (clickedGO.tag =="style3")
+            idx = 2;
+        else
+            idx = 3;
+
+        textureManager.SetContentST(styleReference.lastStyleResults[idx]);
+>>>>>>>> Stashed changes:Assets/Scripts/ST/StyleTransferManager.cs
     }
 
     void StyleChanged()
@@ -73,11 +93,18 @@ public class StyleTransferManagerXR : MonoBehaviour
             if (rayInteractor.TryGetCurrent3DRaycastHit(out RaycastHit hit))
             {
                 GameObject clickedGO = hit.collider.gameObject;
+<<<<<<<< Updated upstream:StyleTransfer/Assets/Scripts/StyleTransferManagerXR.cs
                 if (styleGO != null) // clickedGO.GetInstanceID() != styleGO.GetInstanceID()
                 {
                     styleGO = clickedGO;
                     Debug.Log($"Style texture changed to: {styleGO.name}");
                     execute();
+========
+                if (clickedGO !=null & clickedGO.layer.Equals(LayerMask.NameToLayer("StyleImage"))) // clickedGO.GetInstanceID() != styleGO.GetInstanceID()
+                {
+                    Debug.Log($"Style texture changed to: {clickedGO.name}");
+                    execute(clickedGO);
+>>>>>>>> Stashed changes:Assets/Scripts/ST/StyleTransferManager.cs
                     Debug.Log("Output image updated");
                 }
             }
@@ -130,6 +157,9 @@ public class StyleTransferManagerXR : MonoBehaviour
 
     private void OnDestroy()
     {
+<<<<<<<< Updated upstream:StyleTransfer/Assets/Scripts/StyleTransferManagerXR.cs
         _worker.Dispose();
+========
+>>>>>>>> Stashed changes:Assets/Scripts/ST/StyleTransferManager.cs
     }
 }

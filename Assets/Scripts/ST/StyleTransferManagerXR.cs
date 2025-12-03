@@ -39,6 +39,7 @@ public class StyleTransferManagerXR : MonoBehaviour
 
     void Set()
     {
+        _worker = new Worker(_runtimeModel, BackendType.GPUCompute);
         _runtimeModel = ModelLoader.Load(AdaINModel);
         _content = textureManager.GetContentSel();
         _transform = new TextureTransform().SetDimensions(width: 512, height: 512);
@@ -152,6 +153,8 @@ public class StyleTransferManagerXR : MonoBehaviour
 
     private void Update()
     {
+        if (textureManager.ContentChanged2())
+            styleGO = null;
         StyleChanged();
     }
 

@@ -1,6 +1,8 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Networking;
+using System;
+using System.Collections.Generic;
 
 public class SDImg2ImgClient : MonoBehaviour
 {
@@ -22,6 +24,10 @@ public class SDImg2ImgClient : MonoBehaviour
     public int seed = -1;                        // <0 이면 무시
     public int width = 512, height = 512;            // 0이면 원본 해상도 유지
 
+<<<<<<< Updated upstream
+=======
+    public List<Texture2D> lastStyleResults = new List<Texture2D>();
+>>>>>>> Stashed changes
 
     public void Send(Texture source)
     {
@@ -93,8 +99,18 @@ public class SDImg2ImgClient : MonoBehaviour
         return readable;
     }
 
+<<<<<<< Updated upstream
     public IEnumerator SendAndReceiveWithCallback(Texture source, System.Action onDone = null)
     {
+=======
+    public IEnumerator SendAndReceiveWithCallback(
+    Texture source,
+    System.Action onDone = null,
+    bool runSD = true
+)
+    {
+        // 1) Texture -> PNG 바이트
+>>>>>>> Stashed changes
         Texture2D readable = ToReadableTexture2D(source);
         byte[] pngBytes = readable.EncodeToPNG();
 
@@ -122,13 +138,112 @@ public class SDImg2ImgClient : MonoBehaviour
                 if (outTex.LoadImage(outBytes))
                     textureManager.SetContentSD(outTex);
 
+<<<<<<< Updated upstream
                 Debug.Log("[infer] Success");
+=======
+                ComboResponse resp = JsonUtility.FromJson<ComboResponse>(json);
+
+                // SD 결과 처리
+                if (!string.IsNullOrEmpty(resp.sd))
+                {
+                    try
+                    {
+                        byte[] sdBytes = Convert.FromBase64String(resp.sd);
+                        Texture2D sdTex = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+                        if (sdTex.LoadImage(sdBytes))
+                        {
+                            textureManager.SetContentSD(sdTex);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogError("[infer_combo] Failed to decode SD image: " + e);
+                    }
+                }
+
+                // 스타일 결과 처리
+                lastStyleResults.Clear();
+                if (resp.styles != null)
+                {
+                    foreach (var s in resp.styles)
+                    {
+                        if (string.IsNullOrEmpty(s.image)) continue;
+                        try
+                        {
+                            byte[] styBytes = Convert.FromBase64String(s.image);
+                            Texture2D stTex = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+                            if (stTex.LoadImage(styBytes))
+                            {
+                                lastStyleResults.Add(stTex);
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.LogError("[infer_combo] Failed to decode style image: " + e);
+                        }
+                    }
+
+                    // 일단은 첫 번째 스타일 이미지를 메인 ST 슬롯에 적용
+                    if (lastStyleResults.Count > 0)
+                    {
+                        textureManager.SetContentST(lastStyleResults[0]);
+                    }
+                }
+
+                Debug.Log("[infer_combo] Success");
+>>>>>>> Stashed changes
             }
             req.Dispose();
         }
 
+<<<<<<< Updated upstream
         // 요청이 끝난 후 콜백 호출
         onDone?.Invoke();
     }
 
+=======
+        // 4) 콜백 호출
+        onDone?.Invoke();
+    }
+
+
+    //public IEnumerator SendAndReceiveWithCallback(Texture source, System.Action onDone = null)
+    //{
+    //    Texture2D readable = ToReadableTexture2D(source);
+    //    byte[] pngBytes = readable.EncodeToPNG();
+
+    //    WWWForm form = new WWWForm();
+    //    form.AddField("static_prompt", staticPrompt);
+    //    form.AddField("dynamic_prompt", dynamicPrompt);
+    //    form.AddField("strength", strength.ToString(System.Globalization.CultureInfo.InvariantCulture));
+    //    form.AddField("guidance_scale", guidanceScale.ToString(System.Globalization.CultureInfo.InvariantCulture));
+    //    form.AddField("steps", steps.ToString());
+    //    form.AddBinaryData("image", pngBytes, "input.png", "image/png");
+
+    //    using (UnityWebRequest req = UnityWebRequest.Post(inferUrl, form))
+    //    {
+    //        req.timeout = timeoutSec;
+    //        yield return req.SendWebRequest();
+
+    //        if (req.result != UnityWebRequest.Result.Success)
+    //        {
+    //            Debug.LogError($"[infer] {req.responseCode} {req.error}\n{req.downloadHandler.text}");
+    //        }
+    //        else
+    //        {
+    //            byte[] outBytes = req.downloadHandler.data;
+    //            Texture2D outTex = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+    //            if (outTex.LoadImage(outBytes))
+    //                textureManager.SetContentSD(outTex);
+
+    //            Debug.Log("[infer] Success");
+    //        }
+    //        req.Dispose();
+    //    }
+
+    //     요청이 끝난 후 콜백 호출
+    //    onDone?.Invoke();
+    //}
+
+>>>>>>> Stashed changes
 }
