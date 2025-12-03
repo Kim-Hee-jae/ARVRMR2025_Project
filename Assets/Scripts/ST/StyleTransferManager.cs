@@ -16,23 +16,20 @@ public class StyleTransferManager : MonoBehaviour
     public InputActionProperty triggerButton;
 
     [Header("Inputs")]
-    public DrawingTextureManager textureManager;
+    public DrawingTextureManager1 textureManager;
     public SDImg2ImgClient styleReference;
 
 
-    void execute(GameObject clickedGO)
+    void Execute(GameObject clickedGO)
     {
-        int idx;
-        if (clickedGO.tag == "style1")
-            idx = 0;
-        else if (clickedGO.tag == "style2")
-            idx = 1;
-        else if (clickedGO.tag == "style3")
-            idx = 2;
+        if (clickedGO.CompareTag("style1"))
+            textureManager.ChangeStyle(0);
+        else if (clickedGO.CompareTag("style2"))
+            textureManager.ChangeStyle(1);
+        else if (clickedGO.CompareTag("style3"))
+            textureManager.ChangeStyle(2);
         else
-            idx = 3;
-
-        textureManager.SetContentST(styleReference.lastStyleResults[idx]);
+            textureManager.ChangeStyle(3);
     }
 
     void StyleChanged()
@@ -45,7 +42,7 @@ public class StyleTransferManager : MonoBehaviour
                 if (clickedGO != null & clickedGO.layer.Equals(LayerMask.NameToLayer("StyleImage"))) // clickedGO.GetInstanceID() != styleGO.GetInstanceID()
                 {
                     Debug.Log($"Style texture changed to: {clickedGO.name}");
-                    execute(clickedGO);
+                    Execute(clickedGO);
                     Debug.Log("Output image updated");
                 }
             }
@@ -95,7 +92,5 @@ public class StyleTransferManager : MonoBehaviour
         StyleChanged();
     }
 
-    private void OnDestroy()
-    {
-    }
+
 }

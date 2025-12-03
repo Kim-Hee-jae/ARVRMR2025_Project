@@ -1,8 +1,9 @@
+using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Threading;
 using UnityEngine;
 using UnityEngine.Networking;
-using System;
-using System.Collections.Generic;
 
 [Serializable]
 public class StyleImageResult
@@ -21,9 +22,6 @@ public class ComboResponse
 
 public class SDImg2ImgClient : MonoBehaviour
 {
-    [Header("Apply Result")]
-    public DrawingTextureManager textureManager;
-
     [Header("Server")]
     public string inferUrl = "http://127.0.0.1:5000/infer";
     public int timeoutSec = 180;
@@ -40,7 +38,8 @@ public class SDImg2ImgClient : MonoBehaviour
     public int seed = -1;                        // <0 이면 무시
     public int width = 512, height = 512;            // 0이면 원본 해상도 유지
 
-    public List<Texture2D> lastStyleResults = new List<Texture2D>();
+    private List<Texture2D> lastStyleResults = new List<Texture2D>();
+    private Texture2D sdTexture;
 
 
     // 읽기 불가 텍스처/RenderTexture -> 읽기 가능한 Texture2D
@@ -64,11 +63,13 @@ public class SDImg2ImgClient : MonoBehaviour
     }
 
     public IEnumerator SendAndReceiveWithCallback(
-    Texture source,
-    System.Action onDone = null,
-    bool runSD = true
-)
+        Texture source,
+        System.Action<List<Texture2D>, Texture2D> onDone = null,
+        bool runSD = true
+        )
     {
+        sdTexture = null;
+
         // 1) Texture -> PNG 바이트
         Texture2D readable = ToReadableTexture2D(source);
         byte[] pngBytes = readable.EncodeToPNG();
@@ -115,7 +116,7 @@ public class SDImg2ImgClient : MonoBehaviour
                         Texture2D sdTex = new Texture2D(2, 2, TextureFormat.RGBA32, false);
                         if (sdTex.LoadImage(sdBytes))
                         {
-                            textureManager.SetContentSD(sdTex);
+                            sdTexture = sdTex;
                         }
                     }
                     catch (Exception e)
@@ -145,12 +146,6 @@ public class SDImg2ImgClient : MonoBehaviour
                             Debug.LogError("[infer_combo] Failed to decode style image: " + e);
                         }
                     }
-
-                    // 일단은 첫 번째 스타일 이미지를 메인 ST 슬롯에 적용
-                    if (lastStyleResults.Count > 0)
-                    {
-                        textureManager.SetContentST(lastStyleResults[0]);
-                    }
                 }
 
                 Debug.Log("[infer_combo] Success");
@@ -160,7 +155,7 @@ public class SDImg2ImgClient : MonoBehaviour
         }
 
         // 4) 콜백 호출
-        onDone?.Invoke();
+        onDone?.Invoke(lastStyleResults, sdTexture);
     }
 
 

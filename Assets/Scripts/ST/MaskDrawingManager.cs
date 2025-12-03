@@ -5,8 +5,8 @@ using UnityEngine.XR.Interaction.Toolkit;
 
 public class MaskDrawingManager : MonoBehaviour
 {
-    [Header("입력 오브젝트")]
-    public DrawingTextureManager textureManager;
+    [Header("Canvas 설정")]
+    public GameObject canvas;
 
     [Header("XR 레이 / 레이 설정")]
     public XRRayInteractor rayInteractor;
@@ -27,28 +27,22 @@ public class MaskDrawingManager : MonoBehaviour
     public Color brushColor = Color.white;  // 중심 밝기 1 기준이라 사실 R 채널만 씀
 
     private Texture2D _maskTex;
+    public Texture2D maskTex => _maskTex;
+    [HideInInspector]
+    public bool hasStyle = false;
+    public int mode = -1;
 
     void Start()
     {
         // 마스크 텍스처 생성 (처음엔 전부 검정 -> content만 보임)
         _maskTex = new Texture2D(maskResolution, maskResolution, TextureFormat.R8, false);
-        ClearMask(Color.black);
-        _maskTex.Apply();
-
-        // 머티리얼의 _MaskTex 슬롯에 연결 
-        textureManager.SetMaterialMask(_maskTex);
+        ResetMask();
     }
 
     void Update()
     {
-        if (textureManager.ContentChanged())
-        {
-            ClearMask(Color.black);
-            _maskTex.Apply();
-            textureManager.SetMaterialMask(_maskTex);
-        }
 
-        if (!textureManager.HasStyle) return;
+        if (!hasStyle) return;
 
         bool isDrawing = drawAction.reference != null &&
                          drawAction.reference.action != null &&
@@ -58,40 +52,30 @@ public class MaskDrawingManager : MonoBehaviour
                          eraseAction.reference.action != null &&
                          eraseAction.reference.action.IsPressed();
 
-        if (textureManager.StyleChanged())
-        {
-            Texture2D newContent = BlendContentStyleWithMask(
-                ConvertToTexture2D(textureManager.GetMaterialContent()),
-                ConvertToTexture2D(textureManager.GetContentSTp()), 
-                _maskTex
-                );
-            textureManager.SetMaterialContent_(newContent);
+        if (isDrawing) mode = 0;
+        else if (isErasing) mode = 1;
+        else mode = -1;
 
-            ClearMask(Color.black);
-            _maskTex.Apply();
-            textureManager.SetMaterialMask(_maskTex);
-        }
-
-        if (isDrawing)
-        {
-            ShootRayAndPaint();
-        }
-
-        if (isErasing)
-        {
-            // textureManager.SetForErase();
-            textureManager.SetContentST(textureManager.GetContentSel());
-        }
+        if (mode == -1) return;
+        ShootRayAndPaint();
     }
 
-    public void SaveOutput()
+    public Texture SaveOutput(Texture content, Texture style)
     {
         Texture2D newContent = BlendContentStyleWithMask(
-                ConvertToTexture2D(textureManager.GetMaterialContent()),
-                ConvertToTexture2D(textureManager.GetContentST()),
+                ConvertToTexture2D(content),
+                ConvertToTexture2D(style),
                 _maskTex
                 );
-        textureManager.SetOutput(newContent);
+
+        ResetMask();
+        return newContent;
+    }
+
+    public void ResetMask()
+    {
+        ClearMask(Color.black);
+        _maskTex.Apply();
     }
 
     void ShootRayAndPaint()
@@ -99,7 +83,7 @@ public class MaskDrawingManager : MonoBehaviour
         if (rayInteractor != null)
         {
             bool hasHit = rayInteractor.TryGetCurrent3DRaycastHit(out RaycastHit hit);
-            if (hasHit && hit.collider.gameObject == textureManager.gameObject)
+            if (hasHit && hit.collider.gameObject == canvas)
             {
                 Vector2 uv = hit.textureCoord; // 0~1
                 PaintAtUV(uv);
