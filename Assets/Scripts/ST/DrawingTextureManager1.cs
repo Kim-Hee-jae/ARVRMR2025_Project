@@ -63,7 +63,16 @@ public class DrawingTextureManager1 : MonoBehaviour
         targetRenderer.material.SetTexture("_StyleTex", stOutput);
     }
 
+<<<<<<< Updated upstream
     public void SetMaskTexture(Texture mask)
+=======
+    public Texture GetOuput()
+    {
+        return _contentCur;
+    }
+
+    public void Resume()
+>>>>>>> Stashed changes
     {
         targetRenderer.material.SetTexture("_MaskTex", mask);
     }
