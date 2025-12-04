@@ -5,7 +5,7 @@ using System.Collections;
 
 public class SendTextureToFlask : MonoBehaviour
 {
-    public DrawingTextureManager textureManager;
+    public DrawingTextureManager1 textureManager;
     public GameObject sketchObject;
     public string flaskUrl = "http://gawon.store/upload";
 
@@ -16,7 +16,7 @@ public class SendTextureToFlask : MonoBehaviour
 
     IEnumerator SendImage()
     {
-        Texture2D texture = (Texture2D)textureManager.GetOutput();
+        Texture2D texture = (Texture2D)textureManager.GetOuput();
         byte[] bytes = texture.EncodeToPNG();
 
         WWWForm form = new WWWForm();

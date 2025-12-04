@@ -70,6 +70,11 @@ public class DrawingTextureManager1 : MonoBehaviour
         return _contentOri;
     }
 
+    public Texture GetOuput()
+    {
+        return _contentCur;
+    }
+
     public void Resume()
     {
         targetRenderer.material.mainTexture = _contentCur;
