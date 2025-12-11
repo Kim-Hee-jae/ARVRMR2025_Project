@@ -19,8 +19,14 @@ public class StageManager : MonoBehaviour
     public Button buttonS3;
     public Button buttonS4;
 
+    public GameObject stage1;
+    public GameObject stage2;
+    public GameObject stage3;
+    public GameObject stage4;
+
     public Button buttonFinish;
     public Toggle toggleUseSD;
+    public GameObject warningS1;
     public GameObject loadingIcon;
 
     private DateTime startTime;
@@ -29,6 +35,14 @@ public class StageManager : MonoBehaviour
 
     public void OnStage1Click()
     {
+        if (stage == 1)
+            return;
+        warningS1.SetActive(true);
+    }
+
+    public void OnStage1Go()
+    {
+        warningS1.SetActive(false);
         if (sourceRenderer != null & textureManager != null & maskManager != null)
         {
             // 1 -> 2
@@ -43,6 +57,20 @@ public class StageManager : MonoBehaviour
             maskManager.hasStyle = false;
         }
         stage = 1;
+    }
+
+    public void OnStage1NoGo()
+    {
+        warningS1.SetActive(false);
+        stage1.SetActive(false);
+        if (stage == 2)
+            stage2.SetActive(true);
+        else if (stage == 3)
+            stage3.SetActive(true);
+        else if (stage == 4)
+            stage4.SetActive(true);
+        else
+            stage1.SetActive(true);
     }
 
     public void OnStage2Click()
