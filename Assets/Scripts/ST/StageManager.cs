@@ -87,7 +87,11 @@ public class StageManager : MonoBehaviour
             // 2,3,4 -> 2
             else
             {
+<<<<<<< Updated upstream
                 if (stage==3)
+=======
+                if (stage == 3)
+>>>>>>> Stashed changes
                     textureManager.ChangeStyle(-1);
                 textureManager.DisplayUserDrawing();
             }
